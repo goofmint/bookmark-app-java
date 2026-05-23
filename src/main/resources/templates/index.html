@@ -40,11 +40,40 @@
                  th:src="${bookmark.ogpImageUrl()}"
                  alt="">
             <div class="bookmark-body">
-                <a class="bookmark-title" th:href="${bookmark.url()}" th:text="${bookmark.title()}" target="_blank" rel="noreferrer">
-                    Bookmark title
-                </a>
+                <div class="bookmark-header">
+                    <a class="bookmark-title" th:href="${bookmark.url()}" th:text="${bookmark.title()}" target="_blank" rel="noreferrer">
+                        Bookmark title
+                    </a>
+                    <div class="bookmark-actions" aria-label="ブックマーク操作">
+                        <details class="edit-panel">
+                            <summary aria-label="編集" title="編集">✏️</summary>
+                            <form class="edit-form" method="post" th:action="@{/bookmarks/{id}/edit(id=${bookmark.id()})}">
+                                <label>
+                                    <span>タグ（カンマ区切り）</span>
+                                    <input name="tags" type="text" maxlength="500" placeholder="java, spring" th:value="${bookmark.tags()}">
+                                </label>
+                                <label>
+                                    <span>メモ</span>
+                                    <textarea name="description" rows="3" maxlength="2000" placeholder="メモを入力" th:text="${bookmark.description()}"></textarea>
+                                </label>
+                                <button type="submit">保存</button>
+                            </form>
+                        </details>
+                        <form class="delete-form" method="post" th:action="@{/bookmarks/{id}/delete(id=${bookmark.id()})}" onsubmit="return confirm('削除しますか？')">
+                            <button class="icon-button danger-button" type="submit" aria-label="削除" title="削除">🗑️</button>
+                        </form>
+                    </div>
+                </div>
                 <p class="bookmark-url" th:text="${bookmark.url()}">https://example.com</p>
+                <p class="bookmark-description"
+                   th:if="${!#strings.isEmpty(bookmark.description())}"
+                   th:text="${bookmark.description()}">メモ</p>
                 <div class="bookmark-meta">
+                    <th:block th:if="${!#strings.isEmpty(bookmark.tags())}">
+                        <span th:each="tag : ${#strings.arraySplit(bookmark.tags(), ',')}"
+                              th:if="${!#strings.isEmpty(#strings.trim(tag))}"
+                              th:text="${#strings.trim(tag)}">tag</span>
+                    </th:block>
                     <time th:text="${bookmark.createdAt()}">created_at</time>
                 </div>
             </div>

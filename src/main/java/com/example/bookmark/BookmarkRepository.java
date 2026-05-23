@@ -36,4 +36,19 @@ public class BookmarkRepository {
                 VALUES (?, ?, ?, ?, ?)
                 """, title, url, description, tags, ogpImageUrl);
     }
+
+    public void updateDetails(long id, String description, String tags) {
+        jdbcTemplate.update("""
+                UPDATE bookmarks
+                SET description = ?, tags = ?, updated_at = datetime('now')
+                WHERE id = ?
+                """, description, tags, id);
+    }
+
+    public void delete(long id) {
+        jdbcTemplate.update("""
+                DELETE FROM bookmarks
+                WHERE id = ?
+                """, id);
+    }
 }
