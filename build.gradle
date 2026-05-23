@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.springframework.boot' version '3.5.14'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+}
+
+application {
+    mainClass = 'com.example.bookmark.BookmarkApplication'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
+    implementation 'org.jsoup:jsoup:1.22.2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
