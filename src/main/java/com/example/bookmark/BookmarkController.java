@@ -34,13 +34,19 @@ public class BookmarkController {
             return "redirect:/";
         }
 
-        bookmarkRepository.add(
-                metadata.title(),
-                metadata.url(),
-                null,
-                null,
-                metadata.ogpImageUrl()
-        );
+        try {
+            bookmarkRepository.add(
+                    metadata.title(),
+                    metadata.url(),
+                    null,
+                    null,
+                    metadata.ogpImageUrl()
+            );
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("error", "ブックマークを保存できませんでした。");
+            redirectAttributes.addFlashAttribute("url", url);
+            return "redirect:/";
+        }
         return "redirect:/";
     }
 }

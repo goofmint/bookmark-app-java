@@ -172,9 +172,6 @@ button:hover {
 
 .bookmark-url {
     overflow-wrap: anywhere;
-}
-
-.bookmark-url {
     margin: 4px 0 10px;
     color: var(--muted);
     font-size: 14px;
