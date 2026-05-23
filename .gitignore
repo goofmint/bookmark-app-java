@@ -1,0 +1,4 @@
+.gradle/
+build/
+bookmarks.db
+*.db-journal
