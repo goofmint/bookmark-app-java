@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
     implementation 'org.jsoup:jsoup:1.22.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
