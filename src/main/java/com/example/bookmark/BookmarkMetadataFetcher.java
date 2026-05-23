@@ -64,55 +64,26 @@ public class BookmarkMetadataFetcher {
         }
     }
 
+    /**
+     * ループバック・プライベートアドレス・リンクローカル等、
+     * 内部ネットワーク向けアドレスへのアクセスを禁止する。
+     * 本アプリはローカル実行のシングルユーザーデモのため、
+     * JVM 組み込みチェックのみで十分とする。
+     * 将来的に本番用途に転用する場合は、クラウドメタデータエンドポイント
+     * (例: 169.254.169.254) などへの追加ブロックも検討すること。
+     *
+     * - isAnyLocalAddress : 0.0.0.0 / ::
+     * - isLoopbackAddress  : 127.0.0.0/8 / ::1
+     * - isSiteLocalAddress : 10/8, 172.16/12, 192.168/16
+     * - isLinkLocalAddress : 169.254/16 / fe80::/10
+     * - isMulticastAddress : 224.0.0.0/4 / ff00::/8
+     */
     private static boolean isDisallowedAddress(InetAddress address) {
-        if (address.isAnyLocalAddress()
+        return address.isAnyLocalAddress()
                 || address.isLoopbackAddress()
                 || address.isSiteLocalAddress()
                 || address.isLinkLocalAddress()
-                || address.isMulticastAddress()) {
-            return true;
-        }
-
-        byte[] bytes = address.getAddress();
-        if (bytes.length == 4) {
-            return isDisallowedIpv4(bytes, 0);
-        }
-        return bytes.length == 16 && isDisallowedIpv6(bytes);
-    }
-
-    private static boolean isDisallowedIpv4(byte[] bytes, int offset) {
-        int first = Byte.toUnsignedInt(bytes[offset]);
-        int second = Byte.toUnsignedInt(bytes[offset + 1]);
-        int third = Byte.toUnsignedInt(bytes[offset + 2]);
-
-        return first == 0
-                || first == 100 && second >= 64 && second <= 127
-                || first == 192 && second == 0
-                || first == 198 && (second == 18 || second == 19)
-                || first == 198 && second == 51 && third == 100
-                || first == 203 && second == 0 && third == 113
-                || first >= 240;
-    }
-
-    private static boolean isDisallowedIpv6(byte[] bytes) {
-        int first = Byte.toUnsignedInt(bytes[0]);
-        int second = Byte.toUnsignedInt(bytes[1]);
-
-        return (first & 0xfe) == 0xfc
-                || (first == 0x20
-                && second == 0x01
-                && Byte.toUnsignedInt(bytes[2]) == 0x0d
-                && Byte.toUnsignedInt(bytes[3]) == 0xb8)
-                || (isIpv4MappedIpv6(bytes) && isDisallowedIpv4(bytes, 12));
-    }
-
-    private static boolean isIpv4MappedIpv6(byte[] bytes) {
-        for (int i = 0; i < 10; i++) {
-            if (bytes[i] != 0) {
-                return false;
-            }
-        }
-        return bytes[10] == (byte) 0xff && bytes[11] == (byte) 0xff;
+                || address.isMulticastAddress();
     }
 
     private static String requireText(String value) {
