@@ -15,26 +15,25 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class BookmarkMetadataFetcher {
-    public BookmarkMetadata fetch(String url) {
-        String normalizedUrl = normalizeUrl(url);
-        try {
-            Document document = Jsoup.connect(normalizedUrl)
-                    .userAgent("bookmark-demo-java/0.0.1")
-                    .timeout(5000)
-                    .followRedirects(false)
-                    .get();
+    public BookmarkMetadata fetch(String url) throws IOException {
+        NormalizedUrl normalizedUrl = normalizeUrl(url);
+        Document document = Jsoup.connect(normalizedUrl.fetchUrl())
+                .userAgent("bookmark-demo-java/0.0.1")
+                .header("Host", normalizedUrl.hostHeader())
+                .timeout(5000)
+                .followRedirects(false)
+                .execute()
+                .parse();
+        document.setBaseUri(normalizedUrl.url());
 
-            String title = StringUtils.hasText(document.title()) ? document.title().trim() : normalizedUrl;
-            Element ogpImage = document.selectFirst("meta[property=og:image], meta[name=og:image]");
-            String ogpImageUrl = ogpImage != null ? ogpImage.attr("abs:content") : null;
+        String title = StringUtils.hasText(document.title()) ? document.title().trim() : normalizedUrl.url();
+        Element ogpImage = document.selectFirst("meta[property=og:image], meta[name=og:image]");
+        String ogpImageUrl = ogpImage != null ? ogpImage.attr("abs:content") : null;
 
-            return new BookmarkMetadata(title, normalizedUrl, optionalText(ogpImageUrl));
-        } catch (IOException ex) {
-            return new BookmarkMetadata(normalizedUrl, normalizedUrl, null);
-        }
+        return new BookmarkMetadata(title, normalizedUrl.url(), optionalText(ogpImageUrl));
     }
 
-    private static String normalizeUrl(String url) {
+    private static NormalizedUrl normalizeUrl(String url) throws UnknownHostException {
         String trimmedUrl = requireText(url);
         String withScheme = trimmedUrl.matches("(?i)^[a-z][a-z0-9+.-]*://.*") ? trimmedUrl : "https://" + trimmedUrl;
         try {
@@ -46,23 +45,46 @@ public class BookmarkMetadataFetcher {
             if (!StringUtils.hasText(uri.getHost())) {
                 throw new IllegalArgumentException("URL must include a host");
             }
-            rejectDisallowedHost(uri.getHost());
-            return uri.toString();
+            if (StringUtils.hasText(uri.getUserInfo())) {
+                throw new IllegalArgumentException("URL must not include user info");
+            }
+
+            InetAddress[] addresses = InetAddress.getAllByName(uri.getHost());
+            rejectDisallowedHost(addresses);
+            URI fetchUri = new URI(
+                    uri.getScheme(),
+                    null,
+                    addressHost(addresses[0]),
+                    uri.getPort(),
+                    uri.getPath(),
+                    uri.getQuery(),
+                    uri.getFragment()
+            );
+            return new NormalizedUrl(uri.toString(), fetchUri.toString(), hostHeader(uri));
         } catch (URISyntaxException ex) {
             throw new IllegalArgumentException("URL is invalid", ex);
         }
     }
 
-    private static void rejectDisallowedHost(String host) {
-        try {
-            for (InetAddress address : InetAddress.getAllByName(host)) {
-                if (isDisallowedAddress(address)) {
-                    throw new IllegalArgumentException("URL host is not allowed");
-                }
+    private static void rejectDisallowedHost(InetAddress[] addresses) {
+        for (InetAddress address : addresses) {
+            if (isDisallowedAddress(address)) {
+                throw new IllegalArgumentException("URL host is not allowed");
             }
-        } catch (UnknownHostException ex) {
-            throw new IllegalArgumentException("URL host cannot be resolved", ex);
         }
+    }
+
+    private static String addressHost(InetAddress address) {
+        String hostAddress = address.getHostAddress();
+        int scopeIndex = hostAddress.indexOf('%');
+        return scopeIndex >= 0 ? hostAddress.substring(0, scopeIndex) : hostAddress;
+    }
+
+    private static String hostHeader(URI uri) {
+        if (uri.getPort() < 0) {
+            return uri.getHost();
+        }
+        return uri.getHost() + ":" + uri.getPort();
     }
 
     /**
@@ -106,5 +128,8 @@ public class BookmarkMetadataFetcher {
 
     private static String optionalText(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private record NormalizedUrl(String url, String fetchUrl, String hostHeader) {
     }
 }

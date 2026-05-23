@@ -1,5 +1,7 @@
 package com.example.bookmark;
 
+import java.io.IOException;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +30,7 @@ public class BookmarkController {
         BookmarkMetadata metadata;
         try {
             metadata = metadataFetcher.fetch(url);
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IOException ex) {
             redirectAttributes.addFlashAttribute("error", "URLを確認してください。");
             redirectAttributes.addFlashAttribute("url", url);
             return "redirect:/";
