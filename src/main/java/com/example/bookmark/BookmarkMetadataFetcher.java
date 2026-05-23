@@ -2,6 +2,7 @@ package com.example.bookmark;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Inet6Address;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -77,13 +78,23 @@ public class BookmarkMetadataFetcher {
      * - isSiteLocalAddress : 10/8, 172.16/12, 192.168/16
      * - isLinkLocalAddress : 169.254/16 / fe80::/10
      * - isMulticastAddress : 224.0.0.0/4 / ff00::/8
+     * - IPv6 ULA           : fc00::/7
      */
     private static boolean isDisallowedAddress(InetAddress address) {
         return address.isAnyLocalAddress()
                 || address.isLoopbackAddress()
                 || address.isSiteLocalAddress()
                 || address.isLinkLocalAddress()
-                || address.isMulticastAddress();
+                || address.isMulticastAddress()
+                || isIpv6UniqueLocalAddress(address);
+    }
+
+    private static boolean isIpv6UniqueLocalAddress(InetAddress address) {
+        if (!(address instanceof Inet6Address)) {
+            return false;
+        }
+        byte[] bytes = address.getAddress();
+        return (bytes[0] & 0xfe) == 0xfc;
     }
 
     private static String requireText(String value) {
