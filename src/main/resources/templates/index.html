@@ -40,12 +40,22 @@
                  th:src="${bookmark.ogpImageUrl()}"
                  alt="">
             <div class="bookmark-body">
-                <a class="bookmark-title" th:href="${bookmark.url()}" th:text="${bookmark.title()}" target="_blank" rel="noreferrer">
-                    Bookmark title
-                </a>
+                <div class="bookmark-card-header">
+                    <a class="bookmark-title" th:href="${bookmark.url()}" th:text="${bookmark.title()}" target="_blank" rel="noreferrer">
+                        Bookmark title
+                    </a>
+                    <div class="bookmark-actions">
+                        <a th:href="@{/bookmarks/{id}/edit(id=${bookmark.id()})}" class="bookmark-action">✏️</a>
+                        <form th:action="@{/bookmarks/{id}/delete(id=${bookmark.id()})}" method="post" onsubmit="return confirm('削除してもよろしいですか？');">
+                            <button type="submit" class="bookmark-action bookmark-action-delete">🗑️</button>
+                        </form>
+                    </div>
+                </div>
                 <p class="bookmark-url" th:text="${bookmark.url()}">https://example.com</p>
+                <p class="bookmark-description" th:if="${bookmark.description() != null}" th:text="${bookmark.description()}">Description</p>
                 <div class="bookmark-meta">
                     <time th:text="${bookmark.createdAt()}">created_at</time>
+                    <span class="bookmark-tags" th:if="${bookmark.tags() != null}" th:text="${bookmark.tags()}">タグ</span>
                 </div>
             </div>
         </article>
