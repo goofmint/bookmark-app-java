@@ -192,6 +192,58 @@ button:hover {
     border-radius: 999px;
 }
 
+.bookmark-card {
+    position: relative;
+}
+
+.bookmark-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.bookmark-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.bookmark-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.bookmark-action:hover {
+    background: var(--surface-muted);
+}
+
+.bookmark-action-delete {
+    border-color: rgba(180, 35, 24, 0.2);
+    color: var(--danger);
+    background: #fff0f0;
+}
+
+.bookmark-description {
+    margin: 12px 0 0;
+    color: var(--text);
+    line-height: 1.7;
+}
+
+.bookmark-tags {
+    display: inline-block;
+    white-space: pre-wrap;
+}
+
 @media (max-width: 720px) {
     .page {
         width: min(100% - 20px, 1040px);
